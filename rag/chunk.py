@@ -11,7 +11,16 @@ from config import CHUNK_OVERLAP, CHUNK_SIZE, CHUNKS_JSON
 
 def crear_chunks(docs: list[Document]) -> list[Document]:
     splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
-    chunks = splitter.split_documents(docs)
+    chunks: list[Document] = []
+    for d in docs:
+        cabecera = d.metadata.pop("cabecera", None)
+        if not cabecera:
+            chunks.extend(splitter.split_documents([d]))
+            continue
+        # tablas de clasificación: cada trozo repite la cabecera (grupo, competición, deporte…)
+        cuerpo = d.page_content[len(cabecera):].strip()
+        for trozo in splitter.split_text(cuerpo):
+            chunks.append(Document(page_content=cabecera + "\n" + trozo, metadata=dict(d.metadata)))
     for i, c in enumerate(chunks):
         c.metadata["chunk_index"] = i
     return chunks
