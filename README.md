@@ -86,6 +86,7 @@ ProjectBreak2_Yordanos/
 ├── data/                   # corpus RAG + fallback/ de las APIs
 ├── assets/imagen_demo.png  # demo multimodal
 ├── specs/                  # SDD
+├── docs/img/               # capturas del README
 ├── entregables/informe_decisiones.md
 └── .streamlit/config.toml
 ```
@@ -176,6 +177,44 @@ streamlit run app.py
 3. **Aprobar**: `done=True` y queda en el historial del hilo. **Rechazar**: el plan se descarta (`done=False`) y puedes enviar otro pedido en el mismo `thread_id`.
 4. **Multimodal**: en Streamlit marca «Usar assets/imagen_demo.png» o sube una imagen. En la CLI escribe `/imagen`. Después pregunta *«Lee este cartel: ¿qué días cierra el centro?»*. El supervisor envía el pedido a `especialista_imagen` → `describir_imagen`.
 5. El expander **Debug** muestra los flags (`thread_id`, `hitl_pendiente`, `done`), la tabla de trazas de tools, el log del grafo y el historial HITL.
+
+### Capturas
+
+**Pedido mixto → dos especialistas → plan en pausa HITL.** El chat se bloquea hasta que apruebas o rechazas en la barra lateral.
+
+![Chat con plan pendiente de aprobación](docs/img/01_chat_plan_hitl.png)
+
+**Debug:** flags del hilo, traza de tools (especialista, tool, categoría, status, ms, args), log del grafo e historial HITL.
+
+![Expander de debug con traza de tools y log del grafo](docs/img/02_debug_trazas.png)
+
+**Aprobar** → `done=True`.
+
+![Plan aprobado, done=True](docs/img/03_aprobado_done.png)
+
+**Multimodal:** con «Usar assets/imagen_demo.png» marcado, el supervisor envía el pedido a `especialista_imagen` → `describir_imagen`.
+
+![Lectura del cartel con la tool multimodal](docs/img/04_multimodal.png)
+
+**Rechazar** → el plan se descarta (`done=False`) y el chat vuelve a aceptar pedidos en el mismo `thread_id`.
+
+![Plan rechazado](docs/img/05_rechazado.png)
+
+**CLI** (`python main.py --demo --auto`, extracto real):
+
+```text
+── turno 1 · thread infosport-b1ccdf9e · pedido: Quiero ir a nadar al Centro Deportivo Municipal Moratalaz…
+[supervisor] iter 1 → especialista_instalaciones (LLM gemini-3.5-flash-lite: Necesitamos consultar los horarios de taquilla…)
+[especialista_instalaciones] paso 1: buscar_polideportivos({"texto": "Moratalaz", "distrito": "Moratalaz", "max_resultados": 1}) → ok (1047 ms)
+[supervisor] iter 2 → especialista_normativa (LLM gemini-3.5-flash-lite: Falta consultar las normas del reglamento…)
+[especialista_normativa] paso 1: rag_ask({"pregunta": "…normas de uso para natacion"}) → ok (4535 ms)
+[supervisor] iter 3 → sintetizar (LLM gemini-3.5-flash-lite: Tenemos todos los datos necesarios…)
+[sintetizar] respuesta + plan de 3 pasos (gemini-3.5-flash-lite) → listo para HITL
+[supervisor] plan listo → FINISH → aplicar (pausa HITL)
+[HITL] grafo en pausa antes de 'aplicar' (interrupt_before) → esperando decisión humana
+🧑 HITL (auto): APROBAR
+  flags: {'thread_id': 'infosport-b1ccdf9e', 'turnos': 1, 'hitl_pendiente': False, 'done': True}
+```
 
 ## 7. Tools
 
