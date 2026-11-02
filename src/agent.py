@@ -26,6 +26,7 @@ def _marcar_hitl(estado: EstadoProducto) -> EstadoProducto:
     valores = snap.values or {}
     estado.hitl_pendiente = tuple(snap.next) == ("aplicar",)
     estado.done = bool(valores.get("done", False))
+    estado.turnos = max(estado.turnos, int(valores.get("turno", 0) or 0))
     estado.ultima_respuesta = valores.get("respuesta", "")
     estado.ultimo_plan = list(valores.get("plan", []))
     estado.log = list(valores.get("log", []))
