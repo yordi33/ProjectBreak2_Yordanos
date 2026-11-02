@@ -64,6 +64,7 @@ def cargar_clasificacion(ruta: Path) -> list[Document]:
                     "tipo": "clasificacion",
                     "grupo": str(grupo),
                     "deporte": str(r0["Nombre_deporte"]),
+                    "cabecera": cabecera,
                 },
             )
         )

@@ -1,17 +1,29 @@
-"""Embeddings con gemini-embedding-001 por lotes, con reintento ante límites de cuota (429)."""
+"""Embeddings por lotes: modelo local (fastembed) o Gemini con reintento ante cuota (429)."""
 from __future__ import annotations
 
+import os
 import re
 import time
+from functools import lru_cache
 
 import joblib
 
-from config import EMBED_BATCH_SIZE, EMBEDDING_MODEL, EMBEDDINGS_FILE
+from config import EMBED_BATCH_SIZE, EMBEDDING_MODEL, EMBEDDING_PROVIDER, EMBEDDINGS_FILE, MODELOS_DIR
 from gemini_auth import get_client
 from rag.chunk import cargar_chunks
 
 
+@lru_cache(maxsize=1)
+def _modelo_local():
+    os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+    from fastembed import TextEmbedding
+
+    return TextEmbedding(EMBEDDING_MODEL, cache_dir=str(MODELOS_DIR))
+
+
 def _embed_lote(textos: list[str], task_type: str) -> list[list[float]]:
+    if EMBEDDING_PROVIDER == "local":
+        return [v.tolist() for v in _modelo_local().embed(textos)]
     client = get_client()
     for intento in range(8):
         try:
@@ -46,8 +58,10 @@ def ejecutar_embeddings() -> list[dict]:
     """Embebe todos los chunks y los guarda en output/embeddings.joblib (reanudable)."""
     chunks = cargar_chunks()
     previos: dict[str, list[float]] = {}
-    if EMBEDDINGS_FILE.exists():  # reaprovecha vectores ya calculados (mismo texto)
-        previos = {it["text"]: it["vector"] for it in joblib.load(EMBEDDINGS_FILE)["items"]}
+    if EMBEDDINGS_FILE.exists():  # reaprovecha vectores ya calculados (mismo texto y modelo)
+        data = joblib.load(EMBEDDINGS_FILE)
+        if data.get("embedding_model") == EMBEDDING_MODEL:
+            previos = {it["text"]: it["vector"] for it in data["items"]}
     pendientes = [c["text"] for c in chunks if c["text"] not in previos]
     print(f"Chunks: {len(chunks)} · ya embebidos: {len(chunks) - len(pendientes)} · pendientes: {len(pendientes)}")
     for i in range(0, len(pendientes), EMBED_BATCH_SIZE):

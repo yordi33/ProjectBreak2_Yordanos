@@ -7,6 +7,8 @@ Reutilizado del Project Break 1 (InfoSport). Cambios respecto al PB1:
 | Clasificación: 1 documento **por grupo** (tabla completa) en vez de 1 por fila | En el PB1, con TOP_K=2 faltaban equipos del grupo (ver informe PB1) |
 | CSV de partidos (28.7k filas) **fuera del índice** → tool `consultar_partidos` | Embeberlo excede la cuota gratuita y la consulta exacta es más fiable |
 | Cliente Gemini por API key (`gemini_auth.py`) en vez de Vertex + credenciales JSON | Reproducible sin cuenta de servicio |
+| Embeddings **locales** (fastembed, multilingual MiniLM) por defecto; Gemini opcional | La cuota gratuita diaria de `gemini-embedding-001` se agotó a los ~750 chunks |
+| Chunks de 700 caracteres; cada trozo de una clasificación repite la cabecera del grupo | El modelo local trunca a ~128 tokens y sin cabecera un trozo perdía el grupo |
 | `task_type` RETRIEVAL_DOCUMENT / RETRIEVAL_QUERY en embeddings | Mejor recuperación asimétrica |
 | Embeddings reanudables (guardado por lote) y reintento ante 429/cortes | Cuota gratuita ≈ 1 lote/min |
 | Bug `\n{3.}` → `\n{3,}` en `normalizar` | La regex del PB1 no colapsaba saltos de línea |
@@ -14,8 +16,8 @@ Reutilizado del Project Break 1 (InfoSport). Cambios respecto al PB1:
 ## Pipeline offline
 `python main.py --prepare --index`
 1. **load** (`rag/load.py`): PDF (PyPDFLoader), CSV de clasificación agrupado, TXT/MD.
-2. **chunk** (`rag/chunk.py`): RecursiveCharacterTextSplitter `CHUNK_SIZE=1200`, `CHUNK_OVERLAP=150` → `output/chunks.json`.
-3. **embed** (`rag/embed.py`): `gemini-embedding-001`, lotes de 50 → `output/embeddings.joblib`.
+2. **chunk** (`rag/chunk.py`): RecursiveCharacterTextSplitter `CHUNK_SIZE=700`, `CHUNK_OVERLAP=100` → `output/chunks.json`.
+3. **embed** (`rag/embed.py`): `EMBEDDING_PROVIDER="local"` (fastembed) o `"gemini"`, lotes de 50 → `output/embeddings.joblib`.
 4. **index** (`rag/index.py`): ChromaDB persistente `output/chroma_db`, coseno, metadatos `source`, `tipo`, `grupo`, `chunk_index`, `embedding_model`.
 
 ## API interna (sin UI)

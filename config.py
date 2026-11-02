@@ -26,15 +26,21 @@ CLASIFICACION_CSV = DATA_DIR / "211549-2-clasificacion-csv.csv"
 # El primero disponible se usa; si la API devuelve 503/429/404 se prueba el siguiente.
 GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-flash-lite-latest"]
 VISION_MODELS = GEMINI_MODELS
-EMBEDDING_MODEL = "gemini-embedding-001"
+# Embeddings: "local" (fastembed, CPU, sin cuota) por defecto; "gemini" usa gemini-embedding-001
+# (la cuota gratuita diaria se agota con ~1.000 chunks: ver informe, fallo 1).
+EMBEDDING_PROVIDER = "local"
+LOCAL_EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
+EMBEDDING_MODEL = LOCAL_EMBEDDING_MODEL if EMBEDDING_PROVIDER == "local" else GEMINI_EMBEDDING_MODEL
+MODELOS_DIR = PROJECT_DIR / "output" / "modelos"
 TEMPERATURE_SUPERVISOR = 0.0
 TEMPERATURE_ESPECIALISTAS = 0.2
 TEMPERATURE_RAG = 0.2
 LLM_REINTENTOS = 2  # reintentos por modelo ante errores transitorios
 
 # ---------------------------------------------------------------- RAG
-CHUNK_SIZE = 1200
-CHUNK_OVERLAP = 150
+CHUNK_SIZE = 700   # el modelo local trunca a ~128 tokens: chunks cortos
+CHUNK_OVERLAP = 100
 EMBED_BATCH_SIZE = 50
 TOP_K = 4
 MAX_GRUPO_CHROMA = 500
