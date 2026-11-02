@@ -1,0 +1,25 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Secretos — NUNCA al repo
+.env
+credentials/
+*.key
+
+# Artefactos generados (índice vectorial, embeddings, logs, checkpoints, subidas)
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.egg-info/
+
+# IDE / SO
+.idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db

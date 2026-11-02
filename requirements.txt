@@ -1,0 +1,17 @@
+# Python 3.10+ (probado con 3.13)
+langgraph>=1.2
+langgraph-checkpoint-sqlite>=3.1
+langchain-core>=1.6
+langchain-community>=0.4
+langchain-text-splitters>=1.1
+google-genai>=2.30
+chromadb>=1.5
+streamlit>=1.65
+pypdf>=6.0
+pandas>=2.2
+python-dotenv>=1.0
+joblib>=1.4
+requests>=2.32
+pillow>=11.0
+truststore>=0.10
+tzdata>=2024.1
