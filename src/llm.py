@@ -15,6 +15,7 @@ from google.genai import types
 from config import GEMINI_MODELS, LLM_REINTENTOS, VISION_MODELS
 from gemini_auth import get_client
 
+_ENFRIAMIENTO: dict[str, float] = {}  # modelo → instante hasta el que no se usa (tras un 429)
 _TRANSITORIOS = ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "500", "INTERNAL", "deadline", "10053", "10054", "timed out", "Connection")
 
 
@@ -29,7 +30,8 @@ def _llamar(contents, *, temperature: float, json_mode: bool, modelos: list[str]
         response_mime_type="application/json" if json_mode else None,
     )
     ultimo_error = None
-    for modelo in modelos:
+    disponibles = [m for m in modelos if _ENFRIAMIENTO.get(m, 0) < time.time()] or modelos
+    for modelo in disponibles:
         for intento in range(LLM_REINTENTOS + 1):
             try:
                 r = client.models.generate_content(model=modelo, contents=contents, config=cfg)
@@ -39,6 +41,11 @@ def _llamar(contents, *, temperature: float, json_mode: bool, modelos: list[str]
                 msg = str(e)
                 if "404" in msg or "NOT_FOUND" in msg:
                     break  # modelo no disponible: siguiente modelo
+                if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                    # cuota agotada: no insistir con este modelo durante un rato
+                    m = re.search(r"retry in (\d+(?:\.\d+)?)s", msg)
+                    _ENFRIAMIENTO[modelo] = time.time() + min(float(m.group(1)) if m else 60, 600)
+                    break
                 if any(t in msg for t in _TRANSITORIOS) and intento < LLM_REINTENTOS:
                     time.sleep(1.5 * (intento + 1))
                     continue
