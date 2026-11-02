@@ -8,7 +8,7 @@ Reutilizado del Project Break 1 (InfoSport). Cambios respecto al PB1:
 | CSV de partidos (28.7k filas) **fuera del índice** → tool `consultar_partidos` | Embeberlo excede la cuota gratuita y la consulta exacta es más fiable |
 | Cliente Gemini por API key (`gemini_auth.py`) en vez de Vertex + credenciales JSON | Reproducible sin cuenta de servicio |
 | Embeddings **locales** (fastembed, multilingual MiniLM) por defecto; Gemini opcional | La cuota gratuita diaria de `gemini-embedding-001` se agotó a los ~750 chunks |
-| Chunks de 700 caracteres; cada trozo de una clasificación repite la cabecera del grupo | El modelo local trunca a ~128 tokens y sin cabecera un trozo perdía el grupo |
+| Chunks de 700 caracteres para PDF; cada tabla de clasificación es **un único chunk** | El modelo local trunca a ~128 tokens: el texto embebido es la cabecera (grupo, competición, deporte) y el LLM recibe la tabla entera. Partirla dejaba trozos con solo las posiciones 8 y 9 |
 | `task_type` RETRIEVAL_DOCUMENT / RETRIEVAL_QUERY en embeddings | Mejor recuperación asimétrica |
 | Embeddings reanudables (guardado por lote) y reintento ante 429/cortes | Cuota gratuita ≈ 1 lote/min |
 | Bug `\n{3.}` → `\n{3,}` en `normalizar` | La regex del PB1 no colapsaba saltos de línea |
