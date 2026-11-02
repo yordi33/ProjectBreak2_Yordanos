@@ -1,7 +1,3 @@
-"""API interna del RAG, usable sin UI: responder() -> dict y rag_ask() -> str.
-
-Es lo que invoca la tool `rag_ask` del agente.
-"""
 from __future__ import annotations
 
 import json
@@ -30,7 +26,7 @@ def responder(pregunta: str, top_k: int | None = None) -> dict:
         return _resultado(error=f"La pregunta supera {MAX_PREGUNTA} caracteres")
     try:
         chunks = buscar(pregunta, top_k)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return _resultado(error=f"Fallo en la recuperación: {e}")
     if not chunks:
         return _resultado(respuesta="No hay fragmentos en el índice.", error="índice vacío")

@@ -1,4 +1,3 @@
-"""Cliente único de Google GenAI (Gemini API) a partir de GOOGLE_API_KEY del .env."""
 from __future__ import annotations
 
 import os
@@ -6,7 +5,7 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 
-try:  # usa el almacén de certificados del sistema (evita CERTIFICATE_VERIFY_FAILED en Windows)
+try:
     import truststore
 
     truststore.inject_into_ssl()

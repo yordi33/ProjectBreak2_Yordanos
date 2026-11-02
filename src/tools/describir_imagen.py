@@ -1,7 +1,3 @@
-"""Tool multimodal: imagen → texto con Gemini (visión).
-
-Por seguridad solo se aceptan imágenes dentro de assets/ o output/uploads/.
-"""
 from __future__ import annotations
 
 from pathlib import Path

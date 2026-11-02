@@ -1,4 +1,3 @@
-"""Embeddings por lotes: modelo local (fastembed) o Gemini con reintento ante cuota (429)."""
 from __future__ import annotations
 
 import os
@@ -31,7 +30,7 @@ def _embed_lote(textos: list[str], task_type: str) -> list[list[float]]:
                 model=EMBEDDING_MODEL, contents=textos, config={"task_type": task_type}
             )
             return [list(e.values) for e in r.embeddings]
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             msg = str(e)
             transitorio = any(t in msg for t in ("429", "503", "RESOURCE_EXHAUSTED", "10053", "10054", "timed out"))
             if not transitorio and not isinstance(e, (ConnectionError, OSError)) and "Connect" not in type(e).__name__:
@@ -55,10 +54,9 @@ def embed_pregunta(pregunta: str) -> list[float]:
 
 
 def ejecutar_embeddings() -> list[dict]:
-    """Embebe todos los chunks y los guarda en output/embeddings.joblib (reanudable)."""
     chunks = cargar_chunks()
     previos: dict[str, list[float]] = {}
-    if EMBEDDINGS_FILE.exists():  # reaprovecha vectores ya calculados (mismo texto y modelo)
+    if EMBEDDINGS_FILE.exists():
         data = joblib.load(EMBEDDINGS_FILE)
         if data.get("embedding_model") == EMBEDDING_MODEL:
             previos = {it["text"]: it["vector"] for it in data["items"]}
@@ -68,7 +66,7 @@ def ejecutar_embeddings() -> list[dict]:
         bloque = pendientes[i : i + EMBED_BATCH_SIZE]
         previos.update(zip(bloque, embed_textos(bloque)))
         print(f"  progreso {len(chunks) - len(pendientes) + i + len(bloque)}/{len(chunks)}", flush=True)
-        _guardar(chunks, previos)  # checkpoint parcial por si se corta
+        _guardar(chunks, previos)
     items = _guardar(chunks, previos)
     print(f"Embeddings guardados en {EMBEDDINGS_FILE} ({len(items)} vectores)")
     return items
