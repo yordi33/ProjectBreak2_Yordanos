@@ -1,8 +1,3 @@
-"""Envoltorio mínimo sobre Gemini: texto, JSON y visión, con fallback de modelos.
-
-Si un modelo devuelve 503/429/404 se reintenta y después se prueba el siguiente de
-config.GEMINI_MODELS. Así el grafo no depende de la disponibilidad de un único modelo.
-"""
 from __future__ import annotations
 
 import json
@@ -15,7 +10,7 @@ from google.genai import types
 from config import GEMINI_MODELS, LLM_REINTENTOS, VISION_MODELS
 from gemini_auth import get_client
 
-_ENFRIAMIENTO: dict[str, float] = {}  # modelo → instante hasta el que no se usa (tras un 429)
+_ENFRIAMIENTO: dict[str, float] = {}
 _TRANSITORIOS = ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "500", "INTERNAL", "deadline", "10053", "10054", "timed out", "Connection")
 
 
@@ -36,13 +31,12 @@ def _llamar(contents, *, temperature: float, json_mode: bool, modelos: list[str]
             try:
                 r = client.models.generate_content(model=modelo, contents=contents, config=cfg)
                 return (r.text or "").strip(), modelo
-            except Exception as e:  # noqa: BLE001 - se clasifica por el texto del error
+            except Exception as e:
                 ultimo_error = e
                 msg = str(e)
                 if "404" in msg or "NOT_FOUND" in msg:
-                    break  # modelo no disponible: siguiente modelo
+                    break
                 if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                    # cuota agotada: no insistir con este modelo durante un rato
                     m = re.search(r"retry in (\d+(?:\.\d+)?)s", msg)
                     _ENFRIAMIENTO[modelo] = time.time() + min(float(m.group(1)) if m else 60, 600)
                     break

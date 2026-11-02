@@ -1,9 +1,3 @@
-"""Registro de tools + allowlist + ejecución segura con traza.
-
-El LLM solo *propone* {"tool": nombre, "args": {...}}; `ejecutar_tool` decide en Python
-si se ejecuta: el nombre debe estar en la allowlist global y en la del especialista.
-Cada llamada genera una entrada de traza (nombre, args, status, preview, ms).
-"""
 from __future__ import annotations
 
 import time
@@ -33,7 +27,6 @@ CATEGORIA = {
 
 
 def describir_tools(nombres: list[str]) -> str:
-    """Catálogo (nombre, descripción, args) para el prompt del especialista."""
     lineas = []
     for n in nombres:
         t = TOOLS[n]
@@ -43,7 +36,6 @@ def describir_tools(nombres: list[str]) -> str:
 
 
 def ejecutar_tool(nombre: str, args: dict | None, permitidas: list[str] | None = None) -> dict:
-    """Ejecuta una tool solo si está permitida. Nunca lanza excepción: devuelve la traza."""
     args = args if isinstance(args, dict) else {}
     traza = {"tool": nombre, "args": args, "status": "ok", "resultado": "", "preview": "", "ms": 0}
     if nombre not in ALLOWLIST:
@@ -54,7 +46,7 @@ def ejecutar_tool(nombre: str, args: dict | None, permitidas: list[str] | None =
         t0 = time.perf_counter()
         try:
             traza["resultado"] = str(TOOLS[nombre].invoke(args))
-        except Exception as e:  # noqa: BLE001 - el error queda en la traza, no rompe el grafo
+        except Exception as e:
             traza.update(status="error", resultado=f"{type(e).__name__}: {e}")
         traza["ms"] = round((time.perf_counter() - t0) * 1000)
     traza["preview"] = traza["resultado"][:160].replace("\n", " ")

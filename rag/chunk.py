@@ -1,4 +1,3 @@
-"""Fragmentación con RecursiveCharacterTextSplitter y persistencia en output/chunks.json."""
 from __future__ import annotations
 
 import json
@@ -17,9 +16,6 @@ def crear_chunks(docs: list[Document]) -> list[Document]:
         if not cabecera:
             chunks.extend(splitter.split_documents([d]))
             continue
-        # tablas de clasificación: un único chunk por grupo. El embedding local solo ve ~128 tokens
-        # (la cabecera con grupo/competición/deporte, que es lo que se busca) y el LLM recibe la
-        # tabla completa; partirla dejaba trozos con solo algunas posiciones.
         chunks.append(Document(page_content=d.page_content, metadata=dict(d.metadata)))
     for i, c in enumerate(chunks):
         c.metadata["chunk_index"] = i

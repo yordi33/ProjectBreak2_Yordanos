@@ -1,8 +1,3 @@
-"""Tools de API externa: polideportivos (datos.madrid.es) y tiempo (Open-Meteo).
-
-Ambas tienen fallback local en data/fallback/ si falla la red; la respuesta indica
-siempre el origen ("api" o "fallback") para que quede en la traza.
-"""
 from __future__ import annotations
 
 import json
@@ -33,7 +28,7 @@ def _polideportivos() -> tuple[list[dict], str]:
         r = requests.get(POLIDEPORTIVOS_URL, timeout=HTTP_TIMEOUT, headers={"User-Agent": "InfoSport-PB2/1.0"})
         r.raise_for_status()
         return r.json()["@graph"], "api"
-    except Exception:  # noqa: BLE001 - cualquier fallo de red/formato → fallback
+    except Exception:
         datos = json.loads((FALLBACK_DIR / "polideportivos.json").read_text(encoding="utf-8"))
         return datos["@graph"], "fallback"
 
@@ -92,7 +87,7 @@ def tiempo_madrid() -> str:
         r = requests.get(METEO_URL, params=params, timeout=HTTP_TIMEOUT)
         r.raise_for_status()
         datos, origen = r.json(), "api"
-    except Exception:  # noqa: BLE001
+    except Exception:
         datos = json.loads((FALLBACK_DIR / "tiempo_madrid.json").read_text(encoding="utf-8"))
         origen = "fallback (datos de ejemplo guardados, NO actuales)"
     cur, day = datos["current"], datos["daily"]

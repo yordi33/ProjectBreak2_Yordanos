@@ -1,4 +1,3 @@
-"""Herramienta auxiliar determinista: fecha y hora actuales en Madrid."""
 from __future__ import annotations
 
 import json
