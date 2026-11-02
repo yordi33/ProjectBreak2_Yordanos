@@ -24,7 +24,13 @@ CLASIFICACION_CSV = DATA_DIR / "211549-2-clasificacion-csv.csv"
 
 # ---------------------------------------------------------------- modelos
 # El primero disponible se usa; si la API devuelve 503/429/404 se prueba el siguiente.
-GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-flash-lite-latest"]
+GEMINI_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3-flash-preview",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+]
 VISION_MODELS = GEMINI_MODELS
 # Embeddings: "local" (fastembed, CPU, sin cuota) por defecto; "gemini" usa gemini-embedding-001
 # (la cuota gratuita diaria se agota con ~1.000 chunks: ver informe, fallo 1).
