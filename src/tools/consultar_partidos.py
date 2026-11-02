@@ -1,8 +1,3 @@
-"""Tool estructurada sobre el CSV de partidos (28k filas) con pandas.
-
-El CSV es demasiado grande para embeberlo fila a fila; una consulta exacta por
-equipo / fecha / estado es además más fiable que la búsqueda semántica.
-"""
 from __future__ import annotations
 
 import json

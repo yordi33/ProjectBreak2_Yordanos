@@ -1,4 +1,3 @@
-"""Recuperación top-k sobre Chroma."""
 from __future__ import annotations
 
 from config import TOP_K

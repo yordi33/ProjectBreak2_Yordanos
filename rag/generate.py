@@ -1,4 +1,3 @@
-"""Construcción del contexto y del prompt anclado al contexto."""
 from __future__ import annotations
 
 from config import RAG_BEHAVIOUR

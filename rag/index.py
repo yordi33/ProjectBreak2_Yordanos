@@ -1,4 +1,3 @@
-"""Índice vectorial persistente en ChromaDB (distancia coseno)."""
 from __future__ import annotations
 
 import chromadb
@@ -14,7 +13,7 @@ def _client() -> chromadb.PersistentClient:
 def get_collection() -> chromadb.Collection:
     try:
         return _client().get_collection(COLLECTION_NAME)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         raise RuntimeError(
             f"No existe el índice '{COLLECTION_NAME}'. Ejecuta: python main.py --prepare --index"
         ) from e
@@ -32,7 +31,7 @@ def indexar() -> int:
     client = _client()
     try:
         client.delete_collection(COLLECTION_NAME)
-    except Exception:  # noqa: BLE001
+    except Exception:
         pass
     col = client.create_collection(COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
     for i in range(0, len(items), MAX_GRUPO_CHROMA):

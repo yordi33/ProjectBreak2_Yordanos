@@ -1,4 +1,3 @@
-"""Estado de producto (lo que ven CLI y Streamlit), separado del estado interno del grafo."""
 from __future__ import annotations
 
 import uuid
@@ -17,8 +16,8 @@ class EstadoProducto:
     done: bool = False
     ultima_respuesta: str = ""
     ultimo_plan: list[str] = field(default_factory=list)
-    log: list[str] = field(default_factory=list)       # log completo del hilo
-    trazas: list[dict] = field(default_factory=list)   # trazas de tools del hilo
+    log: list[str] = field(default_factory=list)
+    trazas: list[dict] = field(default_factory=list)
     error: str = ""
 
     def flags(self) -> dict:

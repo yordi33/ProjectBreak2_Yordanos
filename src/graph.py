@@ -1,17 +1,3 @@
-"""Grafo multiagente de InfoSport con LangGraph.
-
-START → supervisor ─┬─ especialista_normativa ────┐
-                    ├─ especialista_instalaciones ─┼─► supervisor → …
-                    ├─ especialista_imagen ────────┘
-                    └─ sintetizar ─► supervisor
-         supervisor (FINISH) → aplicar  [interrupt_before: HITL] → END
-
-- El supervisor elige con el LLM, pero Python valida la elección, aplica MAX_ITER y
-  tiene un fallback determinista por palabras clave si el LLM falla.
-- Cada especialista hace un mini-bucle (máx. MAX_STEPS) en el que el LLM *propone* una
-  tool en JSON y `ejecutar_tool` la ejecuta solo si está en su allowlist.
-- `done` solo pasa a True en `aplicar`, tras la decisión humana.
-"""
 from __future__ import annotations
 
 import json
@@ -36,28 +22,22 @@ from src.tools import describir_tools, ejecutar_tool
 
 
 class EstadoGrafo(TypedDict, total=False):
-    # entrada del turno
     pedido: str
     imagen: str
     turno: int
-    # trabajo del turno (se resetea en cada pedido)
     notas: dict[str, str]
     visitados: list[str]
     siguiente: str
     iteracion: int
     respuesta: str
     plan: list[str]
-    # HITL
-    decision: str           # "" | "aprobar" | "rechazar"
+    decision: str
     comentario_humano: str
     done: bool
-    # acumulados en el hilo (reducer = concatenar)
     log: Annotated[list[str], operator.add]
     trazas: Annotated[list[dict], operator.add]
     historial: Annotated[list[dict], operator.add]
 
-
-# ------------------------------------------------------------------ supervisor
 
 _PALABRAS = {
     "especialista_imagen": ["imagen", "foto", "cartel", "panel", "folleto", "captura", "png", "jpg"],
@@ -79,7 +59,6 @@ def _norm(s: str) -> str:
 
 
 def ruta_fallback(estado: EstadoGrafo) -> str:
-    """Enrutado determinista (sin LLM) por palabras clave e imagen adjunta."""
     pedido = _norm(estado.get("pedido", ""))
     visitados = estado.get("visitados", [])
     candidatos = []
@@ -89,7 +68,7 @@ def ruta_fallback(estado: EstadoGrafo) -> str:
         if any(p in pedido for p in palabras):
             candidatos.append(esp)
     if not candidatos and not visitados:
-        candidatos.append("especialista_normativa")  # por defecto, el corpus RAG
+        candidatos.append("especialista_normativa")
     for c in candidatos:
         if c not in visitados:
             return c
@@ -138,7 +117,6 @@ def supervisor(estado: EstadoGrafo) -> dict:
         eleccion = ruta_fallback(estado)
         origen = f"fallback determinista ({str(e)[:80]})"
     if eleccion == "sintetizar" and not estado.get("notas"):
-        # nunca sintetizar sin haber consultado a nadie: evitaría respuestas sin tools
         eleccion = ruta_fallback(estado)
         origen += " · forzado a consultar un especialista antes de sintetizar"
     return {"siguiente": eleccion, "iteracion": it, "log": [f"[supervisor] iter {it} → {eleccion} ({origen})"]}
@@ -148,8 +126,6 @@ def enrutar(estado: EstadoGrafo) -> str:
     sig = estado.get("siguiente", "sintetizar")
     return "aplicar" if sig == "FINISH" else sig
 
-
-# ------------------------------------------------------------------ especialistas
 
 def _prompt_especialista(nombre: str, estado: EstadoGrafo, observaciones: list[str]) -> str:
     cfg = ESPECIALISTAS[nombre]
@@ -179,7 +155,6 @@ Responde SOLO JSON, una de estas dos formas:
 
 
 def tool_por_defecto(nombre: str, estado: EstadoGrafo) -> tuple[str, dict] | None:
-    """Fallback determinista si el LLM del especialista no responde: su tool principal."""
     pedido = estado.get("pedido", "")
     p = _norm(pedido)
     if nombre == "especialista_normativa":
@@ -229,7 +204,6 @@ def _crear_especialista(nombre: str):
         else:
             log.append(f"[{nombre}] MAX_STEPS={MAX_STEPS} alcanzado (límite en Python)")
         if not notas:
-            # sin notas del LLM: se pasan las observaciones crudas (nunca datos inventados)
             notas = "\n".join(observaciones) or "Sin datos: ninguna tool devolvió información."
         return {
             "notas": {**estado.get("notas", {}), nombre: notas},
@@ -241,8 +215,6 @@ def _crear_especialista(nombre: str):
     nodo.__name__ = nombre
     return nodo
 
-
-# ------------------------------------------------------------------ sintetizar y aplicar
 
 def sintetizar(estado: EstadoGrafo) -> dict:
     notas = "\n\n".join(f"[{k}]\n{v}" for k, v in estado.get("notas", {}).items())
@@ -281,13 +253,10 @@ def aplicar(estado: EstadoGrafo) -> dict:
     if decision == "aprobar":
         return {"done": True, "historial": [entrada],
                 "log": [f"[aplicar] HITL: APROBADO → done=True" + (f" · '{comentario}'" if comentario else "")]}
-    # rechazo (o decisión ausente): reset parcial, el hilo sigue abierto para otro pedido
     return {"done": False, "plan": [], "notas": {}, "visitados": [], "historial": [entrada],
             "log": [f"[aplicar] HITL: RECHAZADO → plan descartado, done=False; envía un nuevo pedido"
                     + (f" · '{comentario}'" if comentario else "")]}
 
-
-# ------------------------------------------------------------------ construcción
 
 def _checkpointer():
     if CHECKPOINTER == "sqlite":

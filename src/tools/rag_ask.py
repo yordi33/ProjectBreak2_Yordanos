@@ -1,4 +1,3 @@
-"""Tool RAG: envuelve la API interna del RAG del PB1 (rag.responder)."""
 from __future__ import annotations
 
 import json
