@@ -10,6 +10,15 @@ propone un plan que un humano **aprueba o rechaza** (HITL). Las conversaciones s
 
 > Proyecto individual de Yordanos López Díaz · Bootcamp The Bridge · pieza 2 de 3 (RAG → **Agente** → MLOps).
 
+### 🎥 Presentación
+
+| | |
+|---|---|
+| **Vídeo de la presentación** (13 min) | [entregables/presentacion_infosport_agente.mp4](entregables/presentacion_infosport_agente.mp4) |
+| Diapositivas (PDF) | [entregables/presentacion_infosport_agente.pdf](entregables/presentacion_infosport_agente.pdf) |
+| Guion | [entregables/guion_presentacion.pdf](entregables/guion_presentacion.pdf) |
+| Informe de decisiones | [entregables/informe_decisiones.md](entregables/informe_decisiones.md) |
+
 ---
 
 ## 1. Dominio, alcance y diseño (Parte 1)
@@ -87,7 +96,7 @@ ProjectBreak2_Yordanos/
 ├── assets/imagen_demo.png  # demo multimodal
 ├── specs/                  # SDD
 ├── docs/img/               # capturas del README
-├── entregables/            # informe_decisiones.md · presentacion_infosport_agente.pdf · guion_presentacion.pdf/.md
+├── entregables/            # informe · presentación (PDF y vídeo MP4) · guion
 └── .streamlit/config.toml
 ```
 
