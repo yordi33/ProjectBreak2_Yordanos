@@ -1,7 +1,7 @@
 # Spec 00 — Visión, alcance y contrato
 
 > Spec-Driven Development: cada feature se especificó aquí **antes** de implementarla y la spec
-> se usó para dirigir al asistente de código. Si el código y la spec discrepan, manda la spec
+> se usó como guía de la implementación. Si el código y la spec discrepan, manda la spec
 > (y se actualiza la spec en el mismo commit si se cambia de idea).
 
 ## Tema

@@ -110,7 +110,7 @@ Además hay varias redes de seguridad. Si el modelo falla, el supervisor decide 
 
 En Git trabajé con una rama main estable, una rama develop de integración y una rama por cada bloque de trabajo, integradas con merge.
 
-Antes de programar cada parte escribí su especificación en la carpeta *specs* y la usé para dirigir al asistente de código. Al final comprobé todo desde un clon limpio del repositorio. Y no hay secretos en el repo: la clave está en el fichero punto env, que git ignora.
+Antes de programar cada parte escribí su especificación en la carpeta *specs* y la usé como guía para implementarla. Al final comprobé todo desde un clon limpio del repositorio. Y no hay secretos en el repo: la clave está en el fichero punto env, que git ignora.
 
 ### Diapositiva 15 · Tres fallos reales y siguientes pasos (50 s)
 

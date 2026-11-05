@@ -20,6 +20,5 @@ __pycache__/
 # IDE / SO
 .idea/
 .vscode/
-.claude/
 .DS_Store
 Thumbs.db
