@@ -1,3 +1,12 @@
+"""Orquestación: contrato único para CLI y Streamlit.
+
+    procesar_turno(estado, mensaje, imagen=None) → ejecuta el grafo hasta la pausa HITL
+    aprobar_plan(estado, aprobar, comentario)    → update_state + invoke(None) → aplicar
+    run_demo(auto_aprobar)                       → recorrido guiado para la presentación
+
+El grafo se compila una sola vez por proceso: el MemorySaver vive con él y el mismo
+thread_id recupera la conversación entre turnos.
+"""
 from __future__ import annotations
 
 import json
@@ -22,10 +31,12 @@ def _config(thread_id: str) -> dict:
 
 
 def _marcar_hitl(estado: EstadoProducto) -> EstadoProducto:
+    """Sincroniza el estado de producto con el snapshot del checkpointer."""
     snap = get_graph().get_state(_config(estado.thread_id))
     valores = snap.values or {}
     estado.hitl_pendiente = tuple(snap.next) == ("aplicar",)
     estado.done = bool(valores.get("done", False))
+    # con SqliteSaver el hilo puede venir de otro proceso: se recupera el contador de turnos
     estado.turnos = max(estado.turnos, int(valores.get("turno", 0) or 0))
     estado.ultima_respuesta = valores.get("respuesta", "")
     estado.ultimo_plan = list(valores.get("plan", []))
@@ -79,7 +90,7 @@ def procesar_turno(estado: EstadoProducto, mensaje: str, imagen: str | None = No
     }
     try:
         get_graph().invoke(entrada, _config(estado.thread_id))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - la UI muestra el error sin romperse
         estado.error = f"Error ejecutando el grafo: {type(e).__name__}: {e}"
     _marcar_hitl(estado)
     if estado.hitl_pendiente:
@@ -99,8 +110,8 @@ def aprobar_plan(estado: EstadoProducto, aprobar: bool, comentario: str = "") ->
     grafo = get_graph()
     grafo.update_state(cfg, {"decision": "aprobar" if aprobar else "rechazar", "comentario_humano": comentario})
     try:
-        grafo.invoke(None, cfg)
-    except Exception as e:
+        grafo.invoke(None, cfg)  # reanuda desde el interrupt → ejecuta 'aplicar'
+    except Exception as e:  # noqa: BLE001
         estado.error = f"Error al aplicar la decisión: {type(e).__name__}: {e}"
     _marcar_hitl(estado)
     _guardar_traza(estado, "hitl", {"decision": "aprobar" if aprobar else "rechazar", "comentario": comentario})
