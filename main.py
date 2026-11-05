@@ -1,12 +1,21 @@
+"""CLI de InfoSport Agente (cliente del grafo, mismo contrato que Streamlit).
+
+  python main.py --prepare --index          # RAG offline: load → chunk → embed → Chroma
+  python main.py --rag "pregunta"           # RAG directo (sin agente)
+  python main.py --tool hora_actual         # probar una tool aislada (con --args '{...}')
+  python main.py --demo --auto              # demo guiada con decisiones HITL automáticas
+  python main.py --demo                     # demo guiada, decides tú en cada HITL
+  python main.py --chat                     # modo interactivo con HITL manual
+"""
 from __future__ import annotations
 
 import argparse
 import json
 import sys
 
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")  # consola de Windows
 
-from config import IMAGEN_DEMO
+from config import IMAGEN_DEMO  # noqa: E402
 
 
 def _imprimir_turno(estado, desde: int) -> int:

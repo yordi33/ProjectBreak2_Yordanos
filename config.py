@@ -1,5 +1,11 @@
+"""Configuración centralizada de InfoSport Agente (Project Break 2).
+
+Todos los límites (MAX_ITER, MAX_STEPS, MAX_TURNS…), modelos, rutas y la
+allowlist por especialista viven aquí para poder experimentar sin tocar código.
+"""
 from pathlib import Path
 
+# ---------------------------------------------------------------- rutas
 PROJECT_DIR = Path(__file__).resolve().parent
 DATA_DIR = PROJECT_DIR / "data"
 FALLBACK_DIR = DATA_DIR / "fallback"
@@ -16,6 +22,8 @@ IMAGEN_DEMO = ASSETS_DIR / "imagen_demo.png"
 PARTIDOS_CSV = DATA_DIR / "211549-0-partidos-csv.csv"
 CLASIFICACION_CSV = DATA_DIR / "211549-2-clasificacion-csv.csv"
 
+# ---------------------------------------------------------------- modelos
+# El primero disponible se usa; si la API devuelve 503/429/404 se prueba el siguiente.
 GEMINI_MODELS = [
     "gemini-3.5-flash",
     "gemini-3-flash-preview",
@@ -24,6 +32,8 @@ GEMINI_MODELS = [
     "gemini-flash-lite-latest",
 ]
 VISION_MODELS = GEMINI_MODELS
+# Embeddings: "local" (fastembed, CPU, sin cuota) por defecto; "gemini" usa gemini-embedding-001
+# (la cuota gratuita diaria se agotó a los ~750 chunks: ver informe, fallo 1).
 EMBEDDING_PROVIDER = "local"
 LOCAL_EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
@@ -32,9 +42,10 @@ MODELOS_DIR = PROJECT_DIR / "output" / "modelos"
 TEMPERATURE_SUPERVISOR = 0.0
 TEMPERATURE_ESPECIALISTAS = 0.2
 TEMPERATURE_RAG = 0.2
-LLM_REINTENTOS = 2
+LLM_REINTENTOS = 2  # reintentos por modelo ante errores transitorios
 
-CHUNK_SIZE = 700
+# ---------------------------------------------------------------- RAG
+CHUNK_SIZE = 700   # el modelo local trunca a ~128 tokens: chunks cortos
 CHUNK_OVERLAP = 100
 EMBED_BATCH_SIZE = 50
 TOP_K = 4
@@ -44,6 +55,8 @@ MAX_PREGUNTA = 300
 EXTENSIONES_PDF = {".pdf"}
 EXTENSIONES_TEXTO = {".txt", ".md"}
 EXTENSIONES_CSV = {".csv"}
+# El CSV de partidos (28k filas) no se embebe: se consulta con la tool estructurada
+# `consultar_partidos`. La clasificación se indexa agrupada (1 documento por grupo).
 CSV_EXCLUIDOS_RAG = {PARTIDOS_CSV.name}
 
 RAG_BEHAVIOUR = """Eres el módulo RAG de InfoSport: deporte municipal de Madrid
@@ -58,12 +71,14 @@ Reglas:
 - Si el contexto no basta, hay_evidencia=false y explica la abstención en "respuesta".
 - fuentes_citadas: nombres de archivo que aparecen en el contexto y que has usado."""
 
-MAX_ITER = 6
-MAX_STEPS = 3
-MAX_TURNS = 20
-MAX_MENSAJE = 500
-CHECKPOINTER = "memory"
+# ---------------------------------------------------------------- agente / grafo
+MAX_ITER = 6          # vueltas máximas del supervisor por turno
+MAX_STEPS = 3         # llamadas a tools máximas por especialista y turno
+MAX_TURNS = 20        # turnos máximos por conversación (thread_id)
+MAX_MENSAJE = 500     # longitud máxima del mensaje del usuario
+CHECKPOINTER = "memory"  # "memory" (MemorySaver, obligatorio) | "sqlite" (extra)
 
+# Allowlist por especialista: el LLM propone, Python solo ejecuta lo que esté aquí.
 ESPECIALISTAS = {
     "especialista_normativa": {
         "descripcion": "Reglamento de instalaciones deportivas municipales, normas de uso, "
@@ -81,6 +96,7 @@ ESPECIALISTAS = {
     },
 }
 
+# ---------------------------------------------------------------- APIs externas
 POLIDEPORTIVOS_URL = "https://datos.madrid.es/egob/catalogo/200186-0-polideportivos.json"
 METEO_URL = "https://api.open-meteo.com/v1/forecast"
 MADRID_LAT, MADRID_LON = 40.4168, -3.7038
