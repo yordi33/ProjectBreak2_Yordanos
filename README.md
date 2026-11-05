@@ -95,6 +95,7 @@ ProjectBreak2_Yordanos/
 ├── data/                   # corpus RAG + fallback/ de las APIs
 ├── assets/imagen_demo.png  # demo multimodal
 ├── specs/                  # SDD
+├── tests/                  # pytest: tools, RAG, grafo y HITL (sin red ni API key)
 ├── docs/img/               # capturas del README
 ├── entregables/            # informe · presentación (PDF y vídeo MP4) · guion
 └── .streamlit/config.toml
@@ -254,14 +255,30 @@ comprueba la allowlist, ejecuta la tool y deja la traza (nombre, args, status, m
 `assets/imagen_demo.png` se genera con [scripts/crear_imagen_demo.py](scripts/crear_imagen_demo.py) a partir de los datos abiertos
 del CDM Moratalaz. Es una ficha propia de demo, no un cartel oficial.
 
-## 9. Extras
+## 9. Tests
+
+```bash
+pytest
+```
+
+48 tests en unos 4 segundos, **sin red ni API key**: el LLM se sustituye por un falso que responde según el
+tipo de prompt, y las APIs se fuerzan a usar su fallback local. Se ejecutan automáticamente en GitHub Actions
+(`.github/workflows/tests.yml`) en cada push y en cada Pull Request a `main` o `develop`.
+
+| Archivo | Qué comprueba |
+|---|---|
+| `tests/test_tools.py` | Allowlist global y por especialista, formato de la traza, errores sin romper el grafo, fallback sin red de las APIs, filtros de `consultar_partidos`, rutas prohibidas en `describir_imagen` |
+| `tests/test_rag.py` | Un documento por grupo de clasificación sin partir en chunks, validación de preguntas, respuesta con evidencia, abstención, contenido del prompt y la tool `rag_ask` |
+| `tests/test_grafo.py` | Fallback del supervisor, `MAX_ITER`, `MAX_STEPS`, tools bloqueadas, pausa HITL, aprobar (`done=True`), rechazar y seguir en el mismo `thread_id`, hilos aislados y grafo funcionando con el LLM caído |
+
+## 10. Extras
 
 - **SqliteSaver**: pon `CHECKPOINTER = "sqlite"` en `config.py` y los checkpoints se guardan en `output/checkpoints.sqlite`, así sobreviven a reinicios del proceso.
 - Una cuarta tool de datos estructurados (`consultar_partidos`) y una segunda API (`tiempo_madrid`).
 - El modelo cambia solo a otro si el primero está saturado (503).
 - SDD en [specs/](specs/).
 
-## 10. Solución de problemas (Windows)
+## 11. Solución de problemas (Windows)
 
 | Síntoma | Causa | Solución |
 |---|---|---|
@@ -269,7 +286,7 @@ del CDM Moratalaz. Es una ficha propia de demo, no un cartel oficial.
 | `CERTIFICATE_VERIFY_FAILED` al llamar a Gemini | Python no usa los certificados del sistema | Ya resuelto con `truststore` (en `requirements.txt`) |
 | `503 UNAVAILABLE` del modelo | Saturación de Gemini | `src/llm.py` reintenta y pasa al siguiente modelo de `GEMINI_MODELS` |
 
-## 11. Git
+## 12. Git
 
 El repo tiene las ramas `main` (estable), `develop` (integración) y una rama `feature/*` por bloque
 de trabajo, que se integra en `develop` con merge `--no-ff`. Es un proyecto individual: no hay
