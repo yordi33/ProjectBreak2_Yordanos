@@ -72,7 +72,7 @@ El repositorio no contiene secretos: la API key vive en `.env`.
 ### Spec-Driven Development
 Antes de programar cada bloque se escribió su especificación en [specs/](specs/): [visión y contrato](specs/00_vision_y_contrato.md),
 [RAG](specs/01_rag.md), [tools](specs/02_tools.md), [grafo y HITL](specs/03_grafo_hitl.md) y [clientes](specs/04_clientes.md).
-Esas specs guiaron al asistente de código, y los criterios de aceptación de cada una se comprobaron al final.
+Esas specs guiaron la implementación, y los criterios de aceptación de cada una se comprobaron al final.
 
 ---
 
