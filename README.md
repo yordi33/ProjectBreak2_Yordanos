@@ -87,7 +87,7 @@ ProjectBreak2_Yordanos/
 ├── assets/imagen_demo.png  # demo multimodal
 ├── specs/                  # SDD
 ├── docs/img/               # capturas del README
-├── entregables/informe_decisiones.md
+├── entregables/            # informe_decisiones.md · presentacion_infosport_agente.pdf · guion_grabacion.md
 └── .streamlit/config.toml
 ```
 
