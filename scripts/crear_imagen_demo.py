@@ -1,3 +1,9 @@
+"""Genera assets/imagen_demo.png: panel informativo de un centro deportivo municipal.
+
+Los textos del panel salen del open data de polideportivos (data/fallback/polideportivos.json,
+copia de datos.madrid.es), así la tool multimodal lee datos reales y verificables.
+Uso: python scripts/crear_imagen_demo.py
+"""
 import json
 import sys
 import textwrap
@@ -7,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
-from config import FALLBACK_DIR, IMAGEN_DEMO
+from config import FALLBACK_DIR, IMAGEN_DEMO  # noqa: E402
 
 CENTRO = "Centro Deportivo Municipal Moratalaz"
 

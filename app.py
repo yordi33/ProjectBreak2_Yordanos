@@ -1,3 +1,9 @@
+"""Streamlit: cliente del grafo (sin lógica de grafo aquí).
+
+Chat + HITL en la barra lateral (Aprobar / Rechazar) + expander de debug
+(log, traza de tools, thread_id, flags HITL/done) + «Nueva conversación» = nuevo thread_id.
+Ejecutar: streamlit run app.py
+"""
 from __future__ import annotations
 
 import pandas as pd
@@ -27,6 +33,7 @@ if "estado" not in st.session_state:
     _reset()
 estado: EstadoProducto = st.session_state.estado
 
+# ------------------------------------------------------------------ sidebar
 with st.sidebar:
     st.header("InfoSport Agente")
     st.caption(f"thread_id: `{estado.thread_id}`")
@@ -63,6 +70,7 @@ with st.sidebar:
         st.info("Sin plan pendiente")
     st.caption(f"Límites: MAX_ITER={MAX_ITER} · MAX_STEPS={MAX_STEPS} · MAX_TURNS={MAX_TURNS}")
 
+# ------------------------------------------------------------------ chat
 st.title("🏟️ InfoSport Agente")
 st.caption("Deporte municipal de Madrid · LangGraph multiagente + RAG + HITL")
 
@@ -102,6 +110,7 @@ if prompt:
     st.session_state.mensajes.append({"role": "assistant", "content": contenido})
     st.rerun()
 
+# ------------------------------------------------------------------ debug
 with st.expander("🔍 Debug: log, tools, thread_id y flags"):
     st.json(estado.flags())
     st.markdown("**Traza de tools**")

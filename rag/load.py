@@ -1,3 +1,11 @@
+"""Ingesta del corpus (reutilizado y mejorado del Project Break 1).
+
+- PDF  → PyPDFLoader (una página = un Document).
+- CSV de clasificación → un Document por grupo con la tabla completa (en el PB1 era
+  una fila por chunk y con TOP_K bajo faltaban equipos del grupo; ver informe PB1).
+- Otros CSV → un Document por fila (formato «columna: valor»).
+- TXT/MD → TextLoader.
+"""
 from __future__ import annotations
 
 import re
@@ -18,6 +26,7 @@ from config import (
 
 
 def _num(v) -> str:
+    """'3.0' → '3', '.00' → '0', NaN → '-'."""
     if pd.isna(v):
         return "-"
     try:
@@ -107,6 +116,7 @@ def cargar_documentos() -> list[Document]:
                 continue
             d.metadata["source"] = Path(d.metadata.get("source", ruta.name)).name
             if ruta.name.startswith("eli-"):
+                # Etiqueta semántica para que cada chunk del reglamento se identifique como tal
                 texto = "[REGLAMENTO DE INSTALACIONES DEPORTIVAS MUNICIPALES DE MADRID]\n" + texto
             documentos.append(Document(page_content=texto, metadata=dict(d.metadata)))
         if docs:
